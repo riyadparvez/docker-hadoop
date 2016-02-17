@@ -1,16 +1,16 @@
 #
 # Dockerfile - Apache Hadoop
 #
-FROM     ubuntu:14.04
-MAINTAINER Yongbok Kim <ruo91@yongbok.net>
+FROM     debian:8.3
+MAINTAINER Riyad Parvez <riyad.parvez@gmail.com>
 
 # Last Package Update & Install
 RUN apt-get update && apt-get install -y curl supervisor openssh-server net-tools iputils-ping nano git maven
 
 # JDK
 ENV JDK_URL http://download.oracle.com/otn-pub/java/jdk
-ENV JDK_VER 8u65-b17
-ENV JDK_VER2 jdk-8u65
+ENV JDK_VER 8u74-b02
+ENV JDK_VER2 jdk-8u74
 ENV JAVA_HOME /usr/local/jdk
 ENV PATH $PATH:$JAVA_HOME/bin
 RUN cd $SRC_DIR && curl -LO "$JDK_URL/$JDK_VER/$JDK_VER2-linux-x64.tar.gz" -H 'Cookie: oraclelicense=accept-securebackup-cookie' \
@@ -58,8 +58,13 @@ RUN cd /root && ssh-keygen -t dsa -P '' -f "/root/.ssh/id_dsa" \
 RUN hdfs namenode -format
 
 # Install Giraph
-#RUN cd /usr/local && git clone https://github.com/apache/giraph.git && cd giraph && mvn package -DskipTests
-#ENV GIRAPH_HOME /usr/local/giraph
+RUN cd /opt && git clone https://github.com/apache/giraph.git && cd giraph && mvn package -DskipTests
+ADD tiny-graph.txt /opt/giraph/data/tiny-graph.txt
+
+ENV HADOOP_HOME $HADOOP_PREFIX
+ENV HADOOP_CONF_DIR $HADOOP_PREFIX/etc/hadoop
+ENV GIRAPH_PREFIX /opt/giraph
+ENV GIRAPH_HOME /opt/giraph
 
 # Supervisor
 RUN mkdir -p /var/log/supervisor
@@ -72,7 +77,7 @@ RUN sed -i 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
 RUN echo 'SSHD: ALL' >> /etc/hosts.allow
 
 # Root password
-RUN echo 'root:hadoop' |chpasswd
+RUN echo 'root:hadoop' | chpasswd
 
 # Port
 # Node Manager: 8042, Resource Manager: 8088, NameNode: 50070, DataNode: 50075, SecondaryNode: 50090
