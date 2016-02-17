@@ -1,11 +1,11 @@
 #
 # Dockerfile - Apache Hadoop
 #
-FROM     debian:8.3
+FROM     debian:latest
 MAINTAINER Riyad Parvez <riyad.parvez@gmail.com>
 
 # Last Package Update & Install
-RUN apt-get update && apt-get install -y curl supervisor openssh-server net-tools iputils-ping nano git maven
+RUN apt-get update && apt-get install -y curl supervisor openssh-server net-tools iputils-ping nano git maven zsh
 
 # JDK
 ENV JDK_URL http://download.oracle.com/otn-pub/java/jdk
@@ -78,6 +78,7 @@ RUN echo 'SSHD: ALL' >> /etc/hosts.allow
 
 # Root password
 RUN echo 'root:hadoop' | chpasswd
+RUN passwd -d root
 
 # Port
 # Node Manager: 8042, Resource Manager: 8088, NameNode: 50070, DataNode: 50075, SecondaryNode: 50090
