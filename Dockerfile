@@ -23,8 +23,9 @@ RUN cd $SRC_DIR && curl -LO "$JDK_URL/$JDK_VER/$JDK_VER2-linux-x64.tar.gz" -H 'C
 
 # Apache Hadoop
 ENV SRC_DIR /opt
-ENV HADOOP_URL http://www.eu.apache.org/dist/hadoop/common
-ENV HADOOP_VERSION hadoop-2.7.1
+ENV HADOOP_URL http://www.us.apache.org/dist/hadoop/common
+#ENV HADOOP_VERSION hadoop-2.7.2
+ENV HADOOP_VERSION hadoop-2.5.2
 RUN cd $SRC_DIR && curl -LO "$HADOOP_URL/$HADOOP_VERSION/$HADOOP_VERSION.tar.gz" \
  && tar xzf $HADOOP_VERSION.tar.gz && rm -f $HADOOP_VERSION.tar.gz
 
@@ -34,6 +35,8 @@ ENV PATH $PATH:$HADOOP_PREFIX/bin:$HADOOP_PREFIX/sbin
 ENV HADOOP_MAPRED_HOME $HADOOP_PREFIX
 ENV HADOOP_COMMON_HOME $HADOOP_PREFIX
 ENV HADOOP_HDFS_HOME $HADOOP_PREFIX
+ENV HADOOP_HOME $HADOOP_PREFIX
+ENV HADOOP_CONF_DIR $HADOOP_PREFIX/etc/hadoop
 ENV YARN_HOME $HADOOP_PREFIX
 RUN echo '# Hadoop' >> /etc/profile \
  && echo "export HADOOP_PREFIX=$HADOOP_PREFIX" >> /etc/profile \
@@ -41,6 +44,8 @@ RUN echo '# Hadoop' >> /etc/profile \
  && echo 'export HADOOP_MAPRED_HOME=$HADOOP_PREFIX' >> /etc/profile \
  && echo 'export HADOOP_COMMON_HOME=$HADOOP_PREFIX' >> /etc/profile \
  && echo 'export HADOOP_HDFS_HOME=$HADOOP_PREFIX' >> /etc/profile \
+ && echo 'export HADOOP_HOME=$HADOOP_PREFIX' >> /etc/profile \
+ && echo 'export ENV HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop' >> /etc/profile \
  && echo 'export YARN_HOME=$HADOOP_PREFIX' >> /etc/profile
 
 # Add in the etc/hadoop directory
@@ -59,12 +64,15 @@ RUN hdfs namenode -format
 
 # Install Giraph
 RUN cd /opt && git clone https://github.com/apache/giraph.git && cd giraph && mvn package -DskipTests
-ADD tiny-graph.txt /opt/giraph/data/tiny-graph.txt
-
-ENV HADOOP_HOME $HADOOP_PREFIX
-ENV HADOOP_CONF_DIR $HADOOP_PREFIX/etc/hadoop
 ENV GIRAPH_PREFIX /opt/giraph
 ENV GIRAPH_HOME /opt/giraph
+
+RUN echo '# Giraph' >> /etc/profile \
+ && echo "export GIRAPH_PREFIX=/opt/giraph" >> /etc/profile \
+ && echo 'export GIRAPH_HOME=/opt/giraph' >> /etc/profile
+
+ADD tiny-graph.txt $GIRAPH_HOME/data/tiny-graph.txt
+ADD run-example.sh $GIRAPH_HOME/run-example.sh
 
 # Supervisor
 RUN mkdir -p /var/log/supervisor
@@ -77,8 +85,7 @@ RUN sed -i 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
 RUN echo 'SSHD: ALL' >> /etc/hosts.allow
 
 # Root password
-RUN echo 'root:hadoop' | chpasswd
-RUN passwd -d root
+RUN echo 'root:0' | chpasswd
 
 # Port
 # Node Manager: 8042, Resource Manager: 8088, NameNode: 50070, DataNode: 50075, SecondaryNode: 50090
