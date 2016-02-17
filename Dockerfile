@@ -5,7 +5,7 @@ FROM     ubuntu:14.04
 MAINTAINER Yongbok Kim <ruo91@yongbok.net>
 
 # Last Package Update & Install
-RUN apt-get update && apt-get install -y curl supervisor openssh-server net-tools iputils-ping nano
+RUN apt-get update && apt-get install -y curl supervisor openssh-server net-tools iputils-ping nano git maven
 
 # JDK
 ENV JDK_URL http://download.oracle.com/otn-pub/java/jdk
@@ -26,7 +26,7 @@ ENV SRC_DIR /opt
 ENV HADOOP_URL http://www.eu.apache.org/dist/hadoop/common
 ENV HADOOP_VERSION hadoop-2.7.1
 RUN cd $SRC_DIR && curl -LO "$HADOOP_URL/$HADOOP_VERSION/$HADOOP_VERSION.tar.gz" \
- && tar xzf $HADOOP_VERSION.tar.gz ; rm -f $HADOOP_VERSION.tar.gz
+ && tar xzf $HADOOP_VERSION.tar.gz && rm -f $HADOOP_VERSION.tar.gz
 
 # Hadoop ENV
 ENV HADOOP_PREFIX $SRC_DIR/$HADOOP_VERSION
@@ -56,6 +56,10 @@ RUN cd /root && ssh-keygen -t dsa -P '' -f "/root/.ssh/id_dsa" \
 
 # Name node foramt
 RUN hdfs namenode -format
+
+# Install Giraph
+#RUN cd /usr/local && git clone https://github.com/apache/giraph.git && cd giraph && mvn package -DskipTests
+#ENV GIRAPH_HOME /usr/local/giraph
 
 # Supervisor
 RUN mkdir -p /var/log/supervisor
