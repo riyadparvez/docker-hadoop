@@ -18,11 +18,6 @@
 
 <configuration>
 	<property>
-		<name>mapreduce.framework.name</name>
-		<value>yarn</value>
-	</property>
-
-	<property>
 		<name>mapred.system.dir</name>
 		<value>file:/hdfs/mapred/system</value>
 		<final>true</final>
@@ -33,4 +28,19 @@
 		<value>file:/hdfs/mapred/local</value>
 		<final>true</final>
 	</property>
+    
+    <property>
+        <name>mapred.job.tracker</name> 
+        <value>hdnode01:54311</value>
+    </property>
+
+    <property>
+        <name>mapred.tasktracker.map.tasks.maximum</name>
+        <value>4</value>
+    </property>
+
+    <property>
+        <name>mapred.map.tasks</name>
+        <value>4</value>
+    </property>
 </configuration>

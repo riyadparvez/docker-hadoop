@@ -17,9 +17,13 @@
 <!-- Put site-specific property overrides in this file. -->
 
 <configuration>
-	<property>
-		<name>fs.default.name</name>
-		<value>hdfs://0.0.0.0:9000</value>
-		<final>true</final>
-	</property>
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/app/hadoop/tmp</value>
+    </property>
+
+    <property> 
+        <name>fs.default.name</name> 
+        <value>hdfs://hdnode01:54310</value> 
+    </property>
 </configuration>
