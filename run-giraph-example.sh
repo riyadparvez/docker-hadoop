@@ -4,8 +4,8 @@ echo "Starting HDFS"
 $HADOOP_HOME/sbin/start-dfs.sh
 $HADOOP_HOME/sbin/start-mapred.sh
 
-$HADOOP_HOME/bin/hdfs dfs -mkdir -p /user/root/input
-$HADOOP_HOME/bin/hdfs dfs -put $GIRAPH_HOME/data/tiny-graph.txt /user/root/input/tiny-graph.txt
+$HADOOP_HOME/bin/hadoop dfs -copyFromLocal $GIRAPH_HOME/tiny-graph.txt /user/root/input/tiny-graph.txt
+$HADOOP_HOME/bin/hadoop dfs -ls /user/root/input
 
 $HADOOP_HOME/bin/hadoop jar \
     $GIRAPH_HOME/giraph-examples/target/giraph-examples-1.2.0-SNAPSHOT-for-hadoop-1.2.1-jar-with-dependencies.jar \

@@ -75,7 +75,7 @@ RUN echo '# Giraph' >> /etc/profile \
  && echo 'export GIRAPH_HOME=/opt/giraph' >> /etc/profile
 
 ADD tiny-graph.txt $GIRAPH_HOME/data/tiny-graph.txt
-ADD run-example.sh $GIRAPH_HOME/run-example.sh
+ADD run-example.sh $GIRAPH_HOME/run-giraph-example.sh
 
 # Supervisor
 RUN mkdir -p /var/log/supervisor
