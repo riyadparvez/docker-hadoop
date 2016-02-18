@@ -8,12 +8,12 @@ $HADOOP_HOME/bin/hadoop dfs -copyFromLocal $GIRAPH_HOME/tiny-graph.txt /user/roo
 $HADOOP_HOME/bin/hadoop dfs -ls /user/root/input
 
 $HADOOP_HOME/bin/hadoop jar \
-    $GIRAPH_HOME/giraph-examples/target/giraph-examples-1.2.0-SNAPSHOT-for-hadoop-1.2.1-jar-with-dependencies.jar \
-    org.apache.giraph.GiraphRunner org.apache.giraph.examples.SimpleShortestPathsComputation \
-    --workers 1 \
-    --customArguments giraph.SplitMasterWorker=false \
-    --vertexInputFormat org.apache.giraph.io.formats.JsonLongDoubleFloatDoubleVertexInputFormat \
-    --vertexInputPath /user/root/input/tiny-graph.txt \
-    --vertexOutputFormat org.apache.giraph.io.formats.IdWithValueTextOutputFormat \
-    --outputPath /user/root/output
-    #--yarnjars giraph-examples-1.1.0-SNAPSHOT-for-hadoop-2.4.1-jar-with-dependencies.jar \
+  $GIRAPH_HOME/giraph-examples/target/giraph-examples-1.2.0-SNAPSHOT-for-hadoop-0.20.203.0-jar-with-dependencies.jar \
+  org.apache.giraph.GiraphRunner org.apache.giraph.examples.SimpleShortestPathsComputation \
+  -vif org.apache.giraph.io.formats.JsonLongDoubleFloatDoubleVertexInputFormat \
+  -vip /user/root/input/tiny-graph.txt \
+  -vof org.apache.giraph.io.formats.IdWithValueTextOutputFormat \
+  -op /user/root/output/shortestpaths \
+  -w 1
+
+$HADOOP_HOME/bin/hadoop dfs -cat /user/root/output/shortestpaths/p* | less

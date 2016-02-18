@@ -5,12 +5,12 @@ FROM     debian:latest
 MAINTAINER Riyad Parvez <riyad.parvez@gmail.com>
 
 # Last Package Update & Install
-RUN apt-get update && apt-get install -y curl supervisor openssh-server net-tools iputils-ping nano git maven wget
+RUN apt-get update && apt-get install -y curl supervisor openssh-server net-tools iputils-ping nano
 
 # JDK
 ENV JDK_URL http://download.oracle.com/otn-pub/java/jdk
-ENV JDK_VER 8u74-b02
-ENV JDK_VER2 jdk-8u74
+ENV JDK_VER 8u65-b17
+ENV JDK_VER2 jdk-8u65
 ENV JAVA_HOME /usr/local/jdk
 ENV PATH $PATH:$JAVA_HOME/bin
 RUN cd $SRC_DIR && curl -LO "$JDK_URL/$JDK_VER/$JDK_VER2-linux-x64.tar.gz" -H 'Cookie: oraclelicense=accept-securebackup-cookie' \
@@ -22,19 +22,18 @@ RUN cd $SRC_DIR && curl -LO "$JDK_URL/$JDK_VER/$JDK_VER2-linux-x64.tar.gz" -H 'C
  && echo '' >> /etc/profile
 
 # Apache Hadoop
-RUN cd /opt && wget http://archive.apache.org/dist/hadoop/core/hadoop-0.20.203.0/hadoop-0.20.203.0rc1.tar.gz && tar xzf hadoop-0.20.203.0rc1.tar.gz && mv hadoop-0.20.203.0 hadoop && rm -f hadoop-0.20.203.0rc1.tar.gz
-
-RUN mkdir -p /app/hadoop/tmp
-RUN chmod 750 /app/hadoop/tmp
+ENV SRC_DIR /opt
+ENV HADOOP_URL https://archive.apache.org/dist/hadoop/common
+ENV HADOOP_VERSION hadoop-2.4.1
+RUN cd $SRC_DIR && curl --insecure -LO "$HADOOP_URL/$HADOOP_VERSION/$HADOOP_VERSION.tar.gz" \
+ && tar xzf $HADOOP_VERSION.tar.gz ; rm -f $HADOOP_VERSION.tar.gz
 
 # Hadoop ENV
-ENV HADOOP_PREFIX /opt/hadoop
+ENV HADOOP_PREFIX $SRC_DIR/$HADOOP_VERSION
 ENV PATH $PATH:$HADOOP_PREFIX/bin:$HADOOP_PREFIX/sbin
 ENV HADOOP_MAPRED_HOME $HADOOP_PREFIX
 ENV HADOOP_COMMON_HOME $HADOOP_PREFIX
 ENV HADOOP_HDFS_HOME $HADOOP_PREFIX
-ENV HADOOP_HOME $HADOOP_PREFIX
-ENV HADOOP_CONF_DIR $HADOOP_PREFIX/etc/hadoop
 ENV YARN_HOME $HADOOP_PREFIX
 RUN echo '# Hadoop' >> /etc/profile \
  && echo "export HADOOP_PREFIX=$HADOOP_PREFIX" >> /etc/profile \
@@ -42,8 +41,6 @@ RUN echo '# Hadoop' >> /etc/profile \
  && echo 'export HADOOP_MAPRED_HOME=$HADOOP_PREFIX' >> /etc/profile \
  && echo 'export HADOOP_COMMON_HOME=$HADOOP_PREFIX' >> /etc/profile \
  && echo 'export HADOOP_HDFS_HOME=$HADOOP_PREFIX' >> /etc/profile \
- && echo 'export HADOOP_HOME=$HADOOP_PREFIX' >> /etc/profile \
- && echo 'export ENV HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop' >> /etc/profile \
  && echo 'export YARN_HOME=$HADOOP_PREFIX' >> /etc/profile
 
 # Add in the etc/hadoop directory
@@ -51,31 +48,27 @@ ADD conf/core-site.xml $HADOOP_PREFIX/etc/hadoop/core-site.xml
 ADD conf/hdfs-site.xml $HADOOP_PREFIX/etc/hadoop/hdfs-site.xml
 ADD conf/yarn-site.xml $HADOOP_PREFIX/etc/hadoop/yarn-site.xml
 ADD conf/mapred-site.xml $HADOOP_PREFIX/etc/hadoop/mapred-site.xml
-#RUN sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/local/jdk:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
+RUN sed -i '/^export JAVA_HOME/ s:.*:export JAVA_HOME=/usr/local/jdk:' $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh
 
 # SSH keygen
 RUN cd /root && ssh-keygen -t dsa -P '' -f "/root/.ssh/id_dsa" \
  && cat /root/.ssh/id_dsa.pub >> /root/.ssh/authorized_keys && chmod 644 /root/.ssh/authorized_keys
 
-RUN echo '172.0.0.1       localhost' >> /etc/hosts \
- && echo '192.168.56.10   hdnode01' >> /etc/hosts
-RUN echo 'hdnode01' >> $HADOOP_HOME/conf/masters
-RUN echo 'hdnode01' >> $HADOOP_HOME/conf/slaves
-
 # Name node foramt
-RUN $HADOOP_HOME/bin/hadoop namenode -format
+RUN hdfs namenode -format
 
 # Install Giraph
-RUN cd /opt && git clone https://github.com/apache/giraph.git && cd giraph && mvn package -DskipTests
-ENV GIRAPH_PREFIX /opt/giraph
-ENV GIRAPH_HOME /opt/giraph
+#RUN cd /opt && git clone https://github.com/apache/giraph.git && cd giraph && git checkout release-1.1 && mvn -Phadoop_yarn -Dhadoop.version=2.4.0 -DskipTests package
+#ENV GIRAPH_PREFIX /opt/giraph
+#ENV GIRAPH_HOME /opt/giraph
 
-RUN echo '# Giraph' >> /etc/profile \
- && echo "export GIRAPH_PREFIX=/opt/giraph" >> /etc/profile \
- && echo 'export GIRAPH_HOME=/opt/giraph' >> /etc/profile
+#RUN echo '# Giraph' >> /etc/profile \
+# && echo "export GIRAPH_PREFIX=/opt/giraph" >> /etc/profile \
+# && echo 'export GIRAPH_HOME=/opt/giraph' >> /etc/profile
 
-ADD tiny-graph.txt $GIRAPH_HOME/data/tiny-graph.txt
-ADD run-example.sh $GIRAPH_HOME/run-giraph-example.sh
+#ADD tiny-graph.txt $GIRAPH_HOME/data/tiny-graph.txt
+#ADD run-mr-example.sh $HADOOP_HOME/run-mr-example.sh
+#ADD run-giraph-example.sh $GIRAPH_HOME/run-giraph-example.sh
 
 # Supervisor
 RUN mkdir -p /var/log/supervisor
